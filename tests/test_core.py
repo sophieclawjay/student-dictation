@@ -59,6 +59,13 @@ def test_empty_weights_cannot_be_marked_ready(model_directory):
     assert not model_ready(model_directory)
 
 
+def test_empty_vocabulary_cannot_be_marked_ready(model_directory):
+    (model_directory / "vocabulary.json").write_bytes(b"")
+    with pytest.raises(ValueError, match="vocabulary"):
+        mark_model_ready(model_directory, MODEL_BY_KEY["base"])
+    assert not model_ready(model_directory)
+
+
 def test_missing_directory_is_not_ready(tmp_path: Path):
     assert not model_ready(tmp_path / "missing")
 

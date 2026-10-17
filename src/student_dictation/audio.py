@@ -90,14 +90,18 @@ class Recorder:
             if not buffer.append(indata, str(status) if status else ""):
                 raise sd.CallbackStop
 
-        stream = sd.InputStream(
-            device=device,
-            samplerate=samplerate,
-            channels=1,
-            dtype="float32",
-            blocksize=0,
-            callback=callback,
-        )
+        try:
+            stream = sd.InputStream(
+                device=device,
+                samplerate=samplerate,
+                channels=1,
+                dtype="float32",
+                blocksize=0,
+                callback=callback,
+            )
+        except Exception:
+            self.buffer = None
+            raise
         try:
             stream.start()
         except Exception:
@@ -110,11 +114,15 @@ class Recorder:
         if self.stream is None or self.buffer is None:
             raise RuntimeError("The microphone is not recording.")
         stream, self.stream = self.stream, None
-        try:
-            stream.stop()
-        finally:
-            stream.close()
         result, self.buffer = self.buffer, None
+        try:
+            try:
+                stream.stop()
+            finally:
+                stream.close()
+        except Exception:
+            result.clear()
+            raise
         return result
 
     def discard(self) -> None:
@@ -126,3 +134,6 @@ class Recorder:
                 if self.buffer is not None:
                     self.buffer.clear()
                     self.buffer = None
+        elif self.buffer is not None:
+            self.buffer.clear()
+            self.buffer = None

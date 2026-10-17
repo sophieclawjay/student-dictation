@@ -3,7 +3,7 @@ import wave
 import numpy as np
 import pytest
 
-from student_dictation.audio import RecordingBuffer
+from student_dictation.audio import Recorder, RecordingBuffer
 
 
 def test_buffer_stops_at_limit_without_extra_audio(tmp_path):
@@ -50,4 +50,28 @@ def test_buffer_copies_input_and_clips_pcm(tmp_path):
         assert np.all(pcm == 32767)
     buffer.clear()
     assert buffer.frames == 0
+    assert buffer.chunks == []
+
+
+def test_device_stop_failure_still_releases_stream_and_audio():
+    class BrokenStream:
+        closed = False
+
+        def stop(self):
+            raise RuntimeError("Device disconnected")
+
+        def close(self):
+            self.closed = True
+
+    recorder = Recorder()
+    stream = BrokenStream()
+    recorder.stream = stream
+    recorder.buffer = RecordingBuffer(16000)
+    buffer = recorder.buffer
+    buffer.append(np.ones((8000, 1), dtype=np.float32))
+    with pytest.raises(RuntimeError, match="disconnected"):
+        recorder.stop()
+    assert stream.closed
+    assert recorder.stream is None
+    assert recorder.buffer is None
     assert buffer.chunks == []

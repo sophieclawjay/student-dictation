@@ -11,6 +11,9 @@
 - Default large-v3-turbo model downloaded and processed synthetic English, Korean and Vietnamese through the application worker. Per-file elapsed time including process startup and model loading was 3.19, 3.35 and 3.38 seconds on the M5 Max. These are short synthetic fixtures, not hardware recommendations or benchmark averages. Vietnamese retained the same word error observed with MLX. Evidence: `output/fleet-app-turbo-multilingual.jsonl`.
 - Base-model Spanish speech translated into English through the application worker. Evidence: `output/fleet-app-translation.jsonl`. This verifies task execution, not translation quality across languages.
 - Desktop window rendered on M5 Max, enumerated microphone choices and was visually inspected from its captured window image. No microphone recording or global key injection was exercised by this check.
+- 41 automated tests passed independently on M5 Max; local lint passed. Tests cover task restrictions, offline configuration, PCM limits, audio overflow, worker protocol and cancellation, parent-process exit, editor preservation and clipboard changes.
+- PyInstaller built the Apple Silicon macOS app. Frozen app dependency smoke passed. Real audio inference through its bundled worker passed with exit code zero and empty stderr after adding early multiprocessing freeze support. Evidence: `output/mac-frozen-smoke.json` and `output/fleet-frozen-worker-inference.jsonl`.
+- Mac development archive produced: `output/student-dictation-darwin-arm64.zip`. Models are separate downloads. This archive is not a signed/notarized student installer.
 - Existing fleet MLX Whisper large-v3-turbo processed English, Korean and Vietnamese synthetic speech. Vietnamese had a word error. This is separate backend evidence, not an application benchmark.
 - M5 Pro Qwen3.8 27B performed text-only architecture review. Raw response is retained; recommendations were checked rather than accepted as factual claims.
 

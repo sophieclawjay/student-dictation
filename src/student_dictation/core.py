@@ -144,11 +144,17 @@ def model_ready(directory: Path) -> bool:
     files are present. Merely finding model.bin cannot identify a partial model.
     """
     required = ("model.bin", "config.json", "tokenizer.json", ".complete.json")
-    if not all(
-        (directory / name).is_file() and (directory / name).stat().st_size > 0 for name in required
-    ):
+    try:
+        if not all(
+            (directory / name).is_file() and (directory / name).stat().st_size > 0
+            for name in required
+        ):
+            return False
+        return any(p.is_file() and p.stat().st_size for p in directory.glob("vocabulary.*"))
+    except OSError:
+        # A user may remove a cached model in their file manager while the UI is
+        # open. Treat unreadable / disappearing files as unavailable.
         return False
-    return any(p.is_file() and p.stat().st_size for p in directory.glob("vocabulary.*"))
 
 
 def mark_model_ready(directory: Path, model: ModelSpec) -> None:
@@ -157,7 +163,7 @@ def mark_model_ready(directory: Path, model: ModelSpec) -> None:
         (directory / name).is_file() and (directory / name).stat().st_size > 0 for name in required
     ):
         raise ValueError("The download is incomplete. Choose Download model to resume it.")
-    if not any(directory.glob("vocabulary.*")):
+    if not any(p.is_file() and p.stat().st_size for p in directory.glob("vocabulary.*")):
         raise ValueError("The downloaded model is missing its vocabulary. Retry the download.")
     temporary = directory / ".complete.tmp"
     temporary.write_text(
