@@ -1,0 +1,62 @@
+name: Test and package desktop app
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      QT_QPA_PLATFORM: offscreen
+      HF_HUB_OFFLINE: '1'
+      HF_HUB_DISABLE_TELEMETRY: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install app and development dependencies
+        run: python -m pip install ".[dev,build]"
+      - name: Lint
+        run: python -m ruff check .
+      - name: Test without microphone or downloads
+        run: python -m pytest -q
+      - name: Source UI smoke check
+        run: python -m student_dictation --smoke --smoke-report build/source-smoke.json
+      - name: Collect third-party licenses
+        run: python packaging/collect_licenses.py
+      - name: Build native app with separate worker
+        run: python -m PyInstaller packaging/student-dictation.spec --noconfirm
+      - name: Smoke check frozen app (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "dist/StudentDictation/StudentDictation.exe" -ArgumentList "--smoke", "--smoke-report", "build/frozen-smoke.json" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Frozen smoke check failed: $($p.ExitCode)" }
+          $report = Get-Content build/frozen-smoke.json | ConvertFrom-Json
+          if (-not $report.worker_exists) { throw "Worker missing from bundle" }
+      - name: Smoke check frozen app (macOS)
+        if: runner.os == 'macOS'
+        run: '"dist/Student Dictation.app/Contents/MacOS/StudentDictation" --smoke --smoke-report build/frozen-smoke.json'
+      - name: Archive complete application
+        run: python packaging/archive.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: student-dictation-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            dist/student-dictation-*.zip
+            build/*smoke.json
+          if-no-files-found: error
+          retention-days: 14
