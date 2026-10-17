@@ -14,6 +14,8 @@
 - 41 automated tests passed independently on M5 Max; local lint passed. Tests cover task restrictions, offline configuration, PCM limits, audio overflow, worker protocol and cancellation, parent-process exit, editor preservation and clipboard changes.
 - PyInstaller built the Apple Silicon macOS app. Frozen app dependency smoke passed. Real audio inference through its bundled worker passed with exit code zero and empty stderr after adding early multiprocessing freeze support. Evidence: `output/mac-frozen-smoke.json` and `output/fleet-frozen-worker-inference.jsonl`.
 - Mac development archive produced: `output/student-dictation-darwin-arm64.zip`. Models are separate downloads. This archive is not a signed/notarized student installer.
+- Final source passed 43 tests and lint. GitHub-hosted macOS ARM64 and Windows X64 runners both passed tests, source smoke, native packaging and frozen application smoke in [run 39020644763](https://github.com/sophieclawjay/student-dictation/actions/runs/39020644763). Both produced development archives. Windows CI verifies startup and dependencies, not actual microphone input or keyboard permissions.
+- The local Mac bundle passed `codesign --verify --deep --strict`; its signature is an ad-hoc development signature, not a Developer ID/notarized distribution.
 - Existing fleet MLX Whisper large-v3-turbo processed English, Korean and Vietnamese synthetic speech. Vietnamese had a word error. This is separate backend evidence, not an application benchmark.
 - M5 Pro Qwen3.8 27B performed text-only architecture review. Raw response is retained; recommendations were checked rather than accepted as factual claims.
 
@@ -26,4 +28,4 @@
 - Accuracy comparison using Jay's actual VoiceInk engine/model/settings and consented samples, including names, numbers, accents and mixed languages. No 99% or parity claim is made.
 - Translation quality against human-reviewed bilingual reference text. Whisper supports English output for its speech translation task; other target languages need an additional engine.
 
-Unit and desktop UI checks, packaging checks and any subsequent findings should be appended with their actual commands and outcomes.
+Future checks should record their actual commands, environment and outcomes. The repository's current pre-release remains separate from a broadly validated student installer.
