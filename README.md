@@ -66,7 +66,7 @@ with actual local inference during this project's validation.
    file only after you choose a destination. **Clear** supports Undo while open.
 
 Model downloads are roughly 150 MB (base), 490 MB (small), 1.6 GB (large-v3-turbo),
-and 3.1 GB (large-v3). These are approximate file sizes, not memory guarantees.
+and 3.1 GB (large-v3). These approximate download sizes exclude runtime memory.
 Large models need several GB of RAM and may process slower than real time on CPU.
 The app loads a fresh model process for each operation to allow reliable hard
 cancellation and release model memory afterward. Model load latency is expected.
@@ -129,8 +129,8 @@ remote desktops, and secure input fields can affect clipboard and shortcut use.
   per-user Qt cache folder. Use **Open model folder** to find or remove a model while
   idle. No audio or transcript is written to a diagnostic log by the app.
 
-This is a local privacy design, not an operating system sandbox or a forensic
-erasure guarantee. Review output before sharing sensitive or student information.
+The app relies on your operating system's access controls and ordinary file
+deletion. Review output before sharing sensitive or student information.
 
 ## Cancellation and recovery
 
